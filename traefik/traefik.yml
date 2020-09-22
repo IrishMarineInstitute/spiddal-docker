@@ -1,0 +1,10 @@
+## traefik.yml
+
+# Docker configuration backend
+providers:
+  docker:
+    defaultRule: "Host(`{{ trimPrefix `/` .Name }}.spiddal.dm.marine.ie`)"
+
+# API and dashboard configuration
+api:
+  insecure: true

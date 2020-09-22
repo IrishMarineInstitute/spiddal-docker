@@ -1,0 +1,538 @@
+[
+    {
+        "id": "77c7c30f.0fd61c",
+        "type": "tab",
+        "label": "Device to Kafka",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "bd0c2613.015978",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "c7885260.5b223",
+        "type": "Kafka Broker",
+        "z": "",
+        "name": "kafka gconode05",
+        "hosts": [
+            {
+                "host": "gconode05",
+                "port": 9092
+            }
+        ],
+        "hostsEnvVar": "",
+        "connectTimeout": "10000",
+        "requestTimeout": "30000",
+        "autoConnect": "true",
+        "idleConnection": "5",
+        "reconnectOnIdle": "true",
+        "maxAsyncRequests": "10",
+        "checkInterval": "10",
+        "selfSign": true,
+        "usetls": false
+    },
+    {
+        "id": "339341dc.ef64be",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "8536146.25b6be8",
+        "type": "http proxy",
+        "z": "",
+        "name": "spiddal http proxy",
+        "url": "http://172.16.255.226:3128",
+        "noproxy": []
+    },
+    {
+        "id": "80019f2d.9dd3f",
+        "type": "tcp in",
+        "z": "77c7c30f.0fd61c",
+        "name": "MOXA SWITCH",
+        "server": "client",
+        "host": "${DEVICE_SERVER}",
+        "port": "${DEVICE_PORT}",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "\\n",
+        "topic": "spiddal-fluorometer",
+        "base64": false,
+        "x": 270,
+        "y": 120,
+        "wires": [
+            [
+                "addf79e2.df5538"
+            ]
+        ]
+    },
+    {
+        "id": "c319188c.7a1c88",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 870,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "addf79e2.df5538",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Add device and timestamp",
+        "func": "let config = flow.get(\"config\");\nif(!config){\n    console.log(\"config not set. things will break.\");\n}\nvar device = config.id;\nlet instrumentation = [].join(\"|\")\n\nvar parts = [new Date().toISOString()\n    ,device,\n    (\"\"+msg.payload).trim(),\n\n    config.chl_scale_factor,\n    config.chl_dark_counts,\n    config.ntu_scale_factor,\n    config.ntu_dark_counts];\nmsg.payload = parts.join(\"|\");\nflow.set('latest',{payload:msg.payload,time:new Date().getTime()});\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 570,
+        "y": 220,
+        "wires": [
+            [
+                "7818e38c.25462c"
+            ]
+        ]
+    },
+    {
+        "id": "7818e38c.25462c",
+        "type": "Kafka Producer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-fluorometer",
+        "broker": "c7885260.5b223",
+        "topic": "spiddal-fluorometer",
+        "requireAcks": 1,
+        "ackTimeoutMs": 100,
+        "partitionerType": 0,
+        "key": "",
+        "partition": 0,
+        "attributes": 0,
+        "connectionType": "Producer",
+        "x": 970,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "18b6b4f1.f9be7b",
+        "type": "trigger",
+        "z": "77c7c30f.0fd61c",
+        "op1": "",
+        "op2": "",
+        "op1type": "nul",
+        "op2type": "date",
+        "duration": "5",
+        "extend": true,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "name": "Trigger if no data for 5 minutes",
+        "x": 650,
+        "y": 400,
+        "wires": [
+            [
+                "457b1886.3b6b68"
+            ]
+        ]
+    },
+    {
+        "id": "457b1886.3b6b68",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Restart node-red",
+        "func": "console.log(\"No data. Exiting process\")\nglobal.get(\"process\").exit()",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1550,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a94e48.8bcb11b8",
+        "type": "Kafka Consumer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-fluorometer",
+        "broker": "c7885260.5b223",
+        "topics": [
+            {
+                "topic": "spiddal-fluorometer",
+                "offset": 0,
+                "partition": 0
+            }
+        ],
+        "groupId": "spiddal-fluorometer-monitor",
+        "autoCommit": "true",
+        "autoCommitIntervalMs": 5000,
+        "fetchMaxWaitMs": 100,
+        "fetchMinBytes": 1,
+        "fetchMaxBytes": 1048576,
+        "fromOffset": 0,
+        "encoding": "utf8",
+        "keyEncoding": "utf8",
+        "connectionType": "Consumer",
+        "x": 310,
+        "y": 320,
+        "wires": [
+            [
+                "18b6b4f1.f9be7b"
+            ]
+        ]
+    },
+    {
+        "id": "297d216f.13d3ee",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "Inject on Start",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 260,
+        "y": 460,
+        "wires": [
+            [
+                "18b6b4f1.f9be7b",
+                "d521185d.1b79e8",
+                "c90fa419.7375f8"
+            ]
+        ]
+    },
+    {
+        "id": "d521185d.1b79e8",
+        "type": "http request",
+        "z": "77c7c30f.0fd61c",
+        "name": "Fetch device configuration",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "${CSV_CONFIG}",
+        "tls": "",
+        "persist": false,
+        "proxy": "8536146.25b6be8",
+        "authType": "",
+        "x": 350,
+        "y": 660,
+        "wires": [
+            [
+                "f5724ce0.69149"
+            ]
+        ]
+    },
+    {
+        "id": "f5724ce0.69149",
+        "type": "csv",
+        "z": "77c7c30f.0fd61c",
+        "name": "Parse configuration",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "x": 550,
+        "y": 580,
+        "wires": [
+            [
+                "c6b0997e.b1cfb8"
+            ]
+        ]
+    },
+    {
+        "id": "e9d0b162.0a925",
+        "type": "file in",
+        "z": "77c7c30f.0fd61c",
+        "name": "Read settings file",
+        "filename": "/data/settings.js",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 1130,
+        "y": 640,
+        "wires": [
+            [
+                "d0195d7b.8f291"
+            ]
+        ]
+    },
+    {
+        "id": "d3aede30.73661",
+        "type": "file",
+        "z": "77c7c30f.0fd61c",
+        "name": "rewrite settings file",
+        "filename": "/data/settings.js",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1410,
+        "y": 640,
+        "wires": [
+            [
+                "457b1886.3b6b68"
+            ]
+        ]
+    },
+    {
+        "id": "c6b0997e.b1cfb8",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Set current config",
+        "func": "let now = new Date().toISOString();\nlet configs = msg.payload.filter(x=>x.start_date<now && ((!x.end_date) || x.end_date>now))\nif(configs.length > 0){\n    let config = configs[0];\n    flow.set(\"config\",config);\n    if(JSON.stringify(config) !== JSON.stringify(flow.get(\"config\"))){\n        flow.set(\"config\",config, \"file\");\n    }\n    msg.payload = config;\n    node.send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 710,
+        "y": 640,
+        "wires": [
+            [
+                "368fdd39.96d282"
+            ]
+        ]
+    },
+    {
+        "id": "368fdd39.96d282",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Has server address or port changed",
+        "func": "let process = global.get(\"process\");\nif( \n    (msg.payload.moxa_server && `${msg.payload.moxa_server}` !== `${process.env.DEVICE_SERVER}`)\n || \n     (msg.payload.moxa_port && `${msg.payload.moxa_port}` !== `${process.env.DEVICE_PORT}`)\n\n )\n{\n    flow.set(\"DEVICE_SERVER\",msg.payload.moxa_server);\n    flow.set(\"DEVICE_PORT\",msg.payload.moxa_port);\n    send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 960,
+        "y": 580,
+        "wires": [
+            [
+                "e9d0b162.0a925"
+            ]
+        ]
+    },
+    {
+        "id": "d0195d7b.8f291",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Update settings",
+        "func": "let DEVICE_SERVER = flow.get(\"DEVICE_SERVER\");\nlet DEVICE_PORT = flow.get(\"DEVICE_PORT\");\nif(DEVICE_SERVER && DEVICE_PORT){\n    let before = msg.payload;\n    let lines = msg.payload.split(\"\\n\");\n    const regex_server = /^\\s*process.env.DEVICE_SERVER\\s*=/\n    const regex_port= /^\\s*process.env.DEVICE_PORT\\s*=/\n    lines = lines.map(line=>{\n        if(line.match(regex_server)){\n            return `process.env.DEVICE_SERVER = \"${DEVICE_SERVER}\";`;           \n        }else if(line.match(regex_port)){\n            return `process.env.DEVICE_PORT = \"${DEVICE_PORT}\";`;   \n        }else{\n            return line;\n        }\n    });\n    msg.payload = lines.join(\"\\n\");\n    if(before !== msg.payload){\n        send(msg);    \n    }\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1280,
+        "y": 580,
+        "wires": [
+            [
+                "d3aede30.73661"
+            ]
+        ]
+    },
+    {
+        "id": "c90fa419.7375f8",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "load config at startup",
+        "func": "let config = flow.get(\"config\", \"file\");\nflow.set(\"config\",config);\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 570,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "de28f626.8a0c58",
+        "type": "function",
+        "z": "bd0c2613.015978",
+        "name": "Fix broken messages",
+        "func": "let parts = msg.payload.split(\"|\");\n// mi_timestamp,instrument_id,fluorometer,chl_scale_factor,chl_dark_counts,ntu_scale_factor,ntu_dark_counts\nif(parts[0]>\"2020-04\" && parts[0]<\"2020-09-07\" && parts.length === 3){\n    let x = \"|0.0185|50|0.063|50\"\n    if(parts[0]<\"2020-08-28T14:00:00Z\"){\n        x = \"|0.0178|48|0.0529|41\"\n    }\n    msg.payload = msg.payload.trim()+x;\n    send(msg);\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 520,
+        "y": 360,
+        "wires": [
+            [
+                "b000a3d5.ad5be",
+                "c239c535.fee848"
+            ]
+        ]
+    },
+    {
+        "id": "78b38cd4.2bca34",
+        "type": "debug",
+        "z": "bd0c2613.015978",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 1000,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "b000a3d5.ad5be",
+        "type": "delay",
+        "z": "bd0c2613.015978",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "10",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "x": 780,
+        "y": 460,
+        "wires": [
+            [
+                "78b38cd4.2bca34"
+            ]
+        ]
+    },
+    {
+        "id": "a2b1d5c1.b17408",
+        "type": "Kafka Consumer Group",
+        "z": "bd0c2613.015978",
+        "name": "",
+        "broker": "c7885260.5b223",
+        "groupId": "fixoldmessages01",
+        "sessionTimeout": 15000,
+        "protocol": [
+            "roundrobin"
+        ],
+        "encoding": "utf8",
+        "fromOffset": "latest",
+        "commitOffsetsOnFirstJoin": "true",
+        "outOfRangeOffset": "earliest",
+        "topics": [
+            "spiddal-fluorometer"
+        ],
+        "x": 260,
+        "y": 180,
+        "wires": [
+            [
+                "de28f626.8a0c58"
+            ]
+        ]
+    },
+    {
+        "id": "c239c535.fee848",
+        "type": "Kafka Producer",
+        "z": "bd0c2613.015978",
+        "name": "kafka:spiddal-fluorometer",
+        "broker": "c7885260.5b223",
+        "topic": "spiddal-fluorometer",
+        "requireAcks": 1,
+        "ackTimeoutMs": 100,
+        "partitionerType": 0,
+        "key": "",
+        "partition": 0,
+        "attributes": 0,
+        "connectionType": "Producer",
+        "x": 884,
+        "y": 227,
+        "wires": []
+    }
+]

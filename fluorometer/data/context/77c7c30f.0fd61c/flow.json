@@ -1,0 +1,19 @@
+{
+    "latest": {
+        "payload": "2020-09-04T09:54:04.595Z|WL-ECO-FLNTU-3137|09/04/20\t09:44:15\t695\t115\t700\t72\t540",
+        "time": 1599213244595
+    },
+    "config": {
+        "reference": "fluorometer0",
+        "type": "fluorometer",
+        "manufacturer": "seabird",
+        "id": "WL-ECO-FLNTU-3137",
+        "moxa_server": "172.16.255.5",
+        "moxa_port": 951,
+        "chl_scale_factor": 0.0185,
+        "chl_dark_counts": 50,
+        "ntu_scale_factor": 0.063,
+        "ntu_dark_counts": 50,
+        "start_date": "2020-08-28T14:00:00Z"
+    }
+}

@@ -1,0 +1,187 @@
+[
+    {
+        "id": "77c7c30f.0fd61c",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "c7885260.5b223",
+        "type": "Kafka Broker",
+        "z": "",
+        "name": "kafka gconode05",
+        "hosts": [
+            {
+                "host": "gconode05",
+                "port": 9092
+            }
+        ],
+        "hostsEnvVar": "",
+        "connectTimeout": "10000",
+        "requestTimeout": "30000",
+        "autoConnect": "true",
+        "idleConnection": "5",
+        "reconnectOnIdle": "true",
+        "maxAsyncRequests": "10",
+        "checkInterval": "10",
+        "selfSign": true,
+        "usetls": false
+    },
+    {
+        "id": "80019f2d.9dd3f",
+        "type": "tcp in",
+        "z": "77c7c30f.0fd61c",
+        "name": "172.16.255.5:950",
+        "server": "client",
+        "host": "172.16.255.5",
+        "port": "950",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "\\n",
+        "topic": "spiddal-ctd",
+        "base64": false,
+        "x": 270,
+        "y": 120,
+        "wires": [
+            [
+                "addf79e2.df5538"
+            ]
+        ]
+    },
+    {
+        "id": "c319188c.7a1c88",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 870,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "addf79e2.df5538",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Add device and timestamp",
+        "func": "var device = \"I-OCEAN7-304-1214551\"\nvar parts = [new Date().toISOString(),device,(\"\"+msg.payload).trim()];\nmsg.payload = parts.join(\"|\");\nflow.set('latest',{payload:msg.payload,time:new Date().getTime()});\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 570,
+        "y": 220,
+        "wires": [
+            [
+                "7818e38c.25462c"
+            ]
+        ]
+    },
+    {
+        "id": "7818e38c.25462c",
+        "type": "Kafka Producer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-ctd",
+        "broker": "c7885260.5b223",
+        "topic": "spiddal-ctd",
+        "requireAcks": 1,
+        "ackTimeoutMs": 100,
+        "partitionerType": 0,
+        "key": "",
+        "partition": 0,
+        "attributes": 0,
+        "connectionType": "Producer",
+        "x": 890,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "b1026f4e.34638",
+        "type": "trigger",
+        "z": "77c7c30f.0fd61c",
+        "op1": "",
+        "op2": "0",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "5",
+        "extend": true,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "name": "Trigger if no data for 5 minutes",
+        "x": 490,
+        "y": 420,
+        "wires": [
+            [
+                "c89d53a6.6c49c"
+            ]
+        ]
+    },
+    {
+        "id": "c89d53a6.6c49c",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Restart node-red",
+        "func": "console.log('exiting as no data in 5 minutes');\nglobal.get(\"process\").exit();\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 840,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "62d2148c.a71b5c",
+        "type": "Kafka Consumer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-ctd",
+        "broker": "c7885260.5b223",
+        "topics": [
+            {
+                "topic": "spiddal-ctd",
+                "offset": 0,
+                "partition": 0
+            }
+        ],
+        "groupId": "gconode06-spiddal-ctd-process-monitor",
+        "autoCommit": "true",
+        "autoCommitIntervalMs": 5000,
+        "fetchMaxWaitMs": 100,
+        "fetchMinBytes": 1,
+        "fetchMaxBytes": 1048576,
+        "fromOffset": 0,
+        "encoding": "utf8",
+        "keyEncoding": "utf8",
+        "connectionType": "Consumer",
+        "x": 200,
+        "y": 300,
+        "wires": [
+            [
+                "b1026f4e.34638"
+            ]
+        ]
+    },
+    {
+        "id": "b1b9ccc3.2059a",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "Inject on starup",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 200,
+        "y": 520,
+        "wires": [
+            [
+                "b1026f4e.34638"
+            ]
+        ]
+    }
+]
