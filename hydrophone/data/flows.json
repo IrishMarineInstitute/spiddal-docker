@@ -1,0 +1,299 @@
+[
+    {
+        "id": "77c7c30f.0fd61c",
+        "type": "tab",
+        "label": "Collect files from Hydrophone",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "c7885260.5b223",
+        "type": "Kafka Broker",
+        "z": "",
+        "name": "kafka gconode05",
+        "hosts": [
+            {
+                "host": "gconode05",
+                "port": 9092
+            }
+        ],
+        "hostsEnvVar": "",
+        "connectTimeout": "10000",
+        "requestTimeout": "30000",
+        "autoConnect": "true",
+        "idleConnection": "5",
+        "reconnectOnIdle": "true",
+        "maxAsyncRequests": "10",
+        "checkInterval": "10",
+        "selfSign": true,
+        "usetls": false
+    },
+    {
+        "id": "f6890e1d.e2fac",
+        "type": "http proxy",
+        "z": "",
+        "name": "spiddal http proxy",
+        "url": "http://172.16.255.226:3128",
+        "noproxy": []
+    },
+    {
+        "id": "a790be73.e17e1",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "Every Minute",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 180,
+        "y": 140,
+        "wires": [
+            [
+                "aec49c6b.d14b7"
+            ]
+        ]
+    },
+    {
+        "id": "b36af97.2c15208",
+        "type": "exec",
+        "z": "77c7c30f.0fd61c",
+        "command": "/usr/bin/flock",
+        "addpay": true,
+        "append": "",
+        "useSpawn": "true",
+        "timer": "",
+        "oldrc": false,
+        "name": "rsync fft files from hydrophone",
+        "x": 750,
+        "y": 360,
+        "wires": [
+            [
+                "198eec10.0c8324"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "aa51c1a8.2cae5",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Set params to rsync fft files",
+        "func": "let ssh = \"ssh -o KexAlgorithms=+diffie-hellman-group1-sha1 -o Ciphers=3des-cbc\"\nlet server = env.get('DEVICE_SERVER')\nlet remote = `icListen@${server}:Data`\nlet local = \"/data/incoming/\"\nlet rsync_options = `-n /tmp/hydrophone.lock /usr/bin/rsync -iavz --timeout=30 --remove-source-files -e \"${ssh}\" --rsync-path bin/rsync ${remote} ${local}`\nmsg.payload = rsync_options;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 660,
+        "y": 280,
+        "wires": [
+            [
+                "b36af97.2c15208"
+            ]
+        ]
+    },
+    {
+        "id": "ef281ae2.9ebf88",
+        "type": "exec",
+        "z": "77c7c30f.0fd61c",
+        "command": "/usr/bin/flock",
+        "addpay": true,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "60",
+        "oldrc": false,
+        "name": "Delete any wav files from hydrophone",
+        "x": 550,
+        "y": 180,
+        "wires": [
+            [
+                "aa51c1a8.2cae5",
+                "a4d59d48.d59d8"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "aec49c6b.d14b7",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Set params to detect and delete wav recordings",
+        "func": "let ssh = \"ssh -o KexAlgorithms=+diffie-hellman-group1-sha1 -o Ciphers=3des-cbc\"\nlet server = env.get('DEVICE_SERVER')\nlet remote = `icListen@${server}`\nlet command = \"(ls Data/*.wav 2>/dev/null && rm -f Data/*.wav) || echo ok\"\n\nmsg.payload = `-n /tmp/hydrophone.lock ${ssh} ${remote} '${command}'`\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 440,
+        "y": 80,
+        "wires": [
+            [
+                "ef281ae2.9ebf88"
+            ]
+        ]
+    },
+    {
+        "id": "a4d59d48.d59d8",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 960,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "198eec10.0c8324",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "calculate fft source target file paths",
+        "func": "let fs = global.get(\"fs\");\nlet incoming_path = '/data/incoming/Data'\nfs.readdir(incoming_path,(err,lines)=>{\n    let dateformat = /^(\\d){8}$/;\n    lines.map(line=>{\n        if(!line.endsWith(\".txt\")){\n            return;\n        }\n        let filename = line.replace(/^.*\\//,'');\n            let [device_id,date] = filename.split(\"_\");\n        if(filename && device_id && dateformat.test(date)){\n            let y = date.substr(0,4);\n            let m = date.substr(4,2);\n            let d = date.substr(6,2);\n            let outgoing_path = `/data/outgoing/${device_id}/${y}/${m}/${d}`\n            fs.mkdir(outgoing_path,{recursive: true},(err)=>{\n                if(err){\n                    throw err; //todo set status.\n                }\n                let source = `${incoming_path}/${filename}`;\n                let target = `${outgoing_path}/${filename}`;\n                fs.readFile(source, {encoding: 'utf-8'}, (err,data)=>{\n                    if(err){\n                        // TODO: error handling.\n                        return;\n                    }\n                    node.send({payload: {source: source, target: target, data: data}})\n                })\n            })\n        }\n    })\n})\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 820,
+        "y": 440,
+        "wires": [
+            [
+                "21e3d1ae.a0ec6e",
+                "b9ea7d75.e5857"
+            ]
+        ]
+    },
+    {
+        "id": "d0bc8a6.c7d1778",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 950,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "21e3d1ae.a0ec6e",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "rename fft file for archive",
+        "func": "let fs = global.get(\"fs\");\nfs.rename(msg.payload.source,msg.payload.target,(err)=>{\n    //TODO handle errors.\n    if(!(err)){\n        let payload = {source: msg.payload.source, target: msg.payload.target}\n        node.send({payload: payload});\n    }\n})\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 890,
+        "y": 500,
+        "wires": [
+            [
+                "d0bc8a6.c7d1778"
+            ]
+        ]
+    },
+    {
+        "id": "a95697a8.c720b8",
+        "type": "comment",
+        "z": "77c7c30f.0fd61c",
+        "name": "TODO",
+        "info": "1. Read icListen ip address from github at startup and write to settings file if changed\n2. exit if no data for 30 minutes???",
+        "x": 190,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "c1b23335.7dd0e",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Cleanup empty folders",
+        "func": "let root = '/data/outgoing'\nlet fs = global.get(\"fs\");\n  function cleanEmptyFoldersRecursively(folder) {\n    if (!fs.statSync(folder).isDirectory()) {\n      return;\n    }\n    let files = fs.readdirSync(folder);\n    if (files.length > 0) {\n      files.forEach(function(file) {\n        cleanEmptyFoldersRecursively(`${folder}/${file}`);\n      });\n\n      // re-evaluate files; after deleting subfolder\n      // we may have parent folder empty now\n      files = fs.readdirSync(folder);\n    }\n\n    if (files.length == 0 && folder !== root) {\n      fs.rmdirSync(folder);\n      node.send({payload: `deleted ${folder}`})\n      return;\n    }\n  }\n \ncleanEmptyFoldersRecursively(root)",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 360,
+        "y": 480,
+        "wires": [
+            [
+                "5780b344.a58b3c"
+            ]
+        ]
+    },
+    {
+        "id": "cc637df3.11d68",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "Every hour",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 150,
+        "y": 440,
+        "wires": [
+            [
+                "c1b23335.7dd0e"
+            ]
+        ]
+    },
+    {
+        "id": "5780b344.a58b3c",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 560,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "7f1715b.792ddec",
+        "type": "comment",
+        "z": "77c7c30f.0fd61c",
+        "name": "error: 1 usually OK here",
+        "info": "We are using a lock so to only execute one command at a time against the hydrophone.\n\nIf the rsync job is still running, the next run of this could show error:1",
+        "x": 380,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "a727501e.4c913",
+        "type": "Kafka Producer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-hydrophone",
+        "broker": "c7885260.5b223",
+        "topic": "spiddal-hydrophone",
+        "requireAcks": 1,
+        "ackTimeoutMs": 100,
+        "partitionerType": 0,
+        "key": "",
+        "partition": 0,
+        "attributes": 0,
+        "connectionType": "Producer",
+        "x": 970,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "b9ea7d75.e5857",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Extract data",
+        "func": "return {payload: msg.payload.data}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 740,
+        "y": 660,
+        "wires": [
+            [
+                "a727501e.4c913"
+            ]
+        ]
+    }
+]
