@@ -18,6 +18,11 @@
 // to make it available:
 var fs = require("fs");
 
+process.env.DEVICE_SERVER = "172.16.255.7";
+process.env.DEVICE_PORT = "952";
+process.env.DEVICE_ID = "HydroC-CO2-1019-002";
+process.env.CSV_CONFIG = "https://raw.githubusercontent.com/IrishMarineInstitute/uwobs/master/common/apps/pco2_config.csv"
+
 module.exports = {
     // the tcp port that the Node-RED web server is listening on
     uiPort: process.env.PORT || 1880,
@@ -215,7 +220,8 @@ module.exports = {
     // can be accessed in a function block as:
     //    global.get("os")
     functionGlobalContext: {
-        process:require('process')
+        process:require('process'),
+        fs:fs
         // jfive:require("johnny-five"),
         // j5board:require("johnny-five").Board({repl:false})
     },
