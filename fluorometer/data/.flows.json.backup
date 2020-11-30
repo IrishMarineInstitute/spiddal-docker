@@ -497,13 +497,13 @@
         "z": "bd0c2613.015978",
         "name": "",
         "broker": "c7885260.5b223",
-        "groupId": "fixoldmessages01",
+        "groupId": "fixoldmessages02",
         "sessionTimeout": 15000,
         "protocol": [
             "roundrobin"
         ],
         "encoding": "utf8",
-        "fromOffset": "latest",
+        "fromOffset": "earliest",
         "commitOffsetsOnFirstJoin": "true",
         "outOfRangeOffset": "earliest",
         "topics": [
