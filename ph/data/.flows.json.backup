@@ -1,0 +1,585 @@
+[
+    {
+        "id": "77c7c30f.0fd61c",
+        "type": "tab",
+        "label": "Device to Kafka",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "bd0c2613.015978",
+        "type": "tab",
+        "label": "Test Emulator",
+        "disabled": false,
+        "info": "Injects some recorded HEX lines"
+    },
+    {
+        "id": "c7885260.5b223",
+        "type": "Kafka Broker",
+        "name": "kafka gconode05",
+        "hosts": [
+            {
+                "host": "gconode05",
+                "port": 9092
+            }
+        ],
+        "hostsEnvVar": "",
+        "connectTimeout": "10000",
+        "requestTimeout": "30000",
+        "autoConnect": "true",
+        "idleConnection": "5",
+        "reconnectOnIdle": "true",
+        "maxAsyncRequests": "10",
+        "checkInterval": "10",
+        "selfSign": true,
+        "usetls": false
+    },
+    {
+        "id": "339341dc.ef64be",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "8536146.25b6be8",
+        "type": "http proxy",
+        "name": "spiddal http proxy",
+        "url": "http://172.16.255.226:3128",
+        "noproxy": []
+    },
+    {
+        "id": "80019f2d.9dd3f",
+        "type": "tcp in",
+        "z": "77c7c30f.0fd61c",
+        "name": "MOXA SWITCH",
+        "server": "client",
+        "host": "172.16.255.8",
+        "port": "950",
+        "datamode": "single",
+        "datatype": "buffer",
+        "newline": "\\n",
+        "topic": "spiddal-ph",
+        "base64": false,
+        "tls": "",
+        "x": 240,
+        "y": 120,
+        "wires": [
+            [
+                "addf79e2.df5538",
+                "f5b97ef854221049"
+            ]
+        ]
+    },
+    {
+        "id": "c319188c.7a1c88",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 1010,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "addf79e2.df5538",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Add device and timestamp",
+        "func": "let config = flow.get(\"config\");\nif(!config){\n    console.log(\"config not set. things will break.\");\n}\nvar device = config.id;\nlet instrumentation = [].join(\"|\")\n\nvar parts = [new Date().toISOString()\n    ,device,\n    (\"\"+msg.payload).trim()]\n\nmsg.payload = parts.join(\"|\");\nflow.set('latest',{payload:msg.payload,time:new Date().getTime()});\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 140,
+        "wires": [
+            [
+                "7818e38c.25462c",
+                "c319188c.7a1c88"
+            ]
+        ]
+    },
+    {
+        "id": "7818e38c.25462c",
+        "type": "Kafka Producer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-ph",
+        "broker": "c7885260.5b223",
+        "topic": "spiddal-ph",
+        "topicSlash2dot": false,
+        "requireAcks": 1,
+        "ackTimeoutMs": 100,
+        "partitionerType": 0,
+        "key": "",
+        "partition": 0,
+        "attributes": 0,
+        "connectionType": "Producer",
+        "x": 940,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "18b6b4f1.f9be7b",
+        "type": "trigger",
+        "z": "77c7c30f.0fd61c",
+        "name": "Trigger if no data for 5 minutes",
+        "op1": "",
+        "op2": "",
+        "op1type": "nul",
+        "op2type": "date",
+        "duration": "5",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 650,
+        "y": 400,
+        "wires": [
+            [
+                "457b1886.3b6b68"
+            ]
+        ]
+    },
+    {
+        "id": "457b1886.3b6b68",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "d": true,
+        "name": "Restart node-red",
+        "func": "console.log(\"No data. Exiting process\")\nglobal.get(\"process\").exit()",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1550,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a94e48.8bcb11b8",
+        "type": "Kafka Consumer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-ph",
+        "broker": "c7885260.5b223",
+        "regex": false,
+        "topics": [
+            {
+                "topic": "spiddal-ph",
+                "offset": 0,
+                "partition": 0
+            }
+        ],
+        "groupId": "spiddal-ph-monitor",
+        "autoCommit": "true",
+        "autoCommitIntervalMs": 5000,
+        "fetchMaxWaitMs": 100,
+        "fetchMinBytes": 1,
+        "fetchMaxBytes": 1048576,
+        "fromOffset": 0,
+        "encoding": "utf8",
+        "keyEncoding": "utf8",
+        "connectionType": "Consumer",
+        "convertToJson": false,
+        "x": 280,
+        "y": 320,
+        "wires": [
+            [
+                "18b6b4f1.f9be7b"
+            ]
+        ]
+    },
+    {
+        "id": "297d216f.13d3ee",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "Inject on Start",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 460,
+        "wires": [
+            [
+                "18b6b4f1.f9be7b",
+                "d521185d.1b79e8",
+                "c90fa419.7375f8"
+            ]
+        ]
+    },
+    {
+        "id": "d521185d.1b79e8",
+        "type": "http request",
+        "z": "77c7c30f.0fd61c",
+        "name": "Fetch device configuration",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "${CSV_CONFIG}",
+        "tls": "",
+        "persist": false,
+        "proxy": "8536146.25b6be8",
+        "authType": "",
+        "x": 350,
+        "y": 660,
+        "wires": [
+            [
+                "f5724ce0.69149"
+            ]
+        ]
+    },
+    {
+        "id": "f5724ce0.69149",
+        "type": "csv",
+        "z": "77c7c30f.0fd61c",
+        "name": "Parse configuration",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "x": 550,
+        "y": 580,
+        "wires": [
+            [
+                "c6b0997e.b1cfb8"
+            ]
+        ]
+    },
+    {
+        "id": "e9d0b162.0a925",
+        "type": "file in",
+        "z": "77c7c30f.0fd61c",
+        "name": "Read settings file",
+        "filename": "/data/settings.js",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 1130,
+        "y": 640,
+        "wires": [
+            [
+                "d0195d7b.8f291"
+            ]
+        ]
+    },
+    {
+        "id": "d3aede30.73661",
+        "type": "file",
+        "z": "77c7c30f.0fd61c",
+        "name": "rewrite settings file",
+        "filename": "/data/settings.js",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1410,
+        "y": 640,
+        "wires": [
+            [
+                "457b1886.3b6b68"
+            ]
+        ]
+    },
+    {
+        "id": "c6b0997e.b1cfb8",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Set current config",
+        "func": "let now = new Date().toISOString();\nlet configs = msg.payload.filter(x=>x.start_date<now && ((!x.end_date) || x.end_date>now))\nif(configs.length > 0){\n    let config = configs[0];\n    flow.set(\"config\",config);\n    if(JSON.stringify(config) !== JSON.stringify(flow.get(\"config\"))){\n        flow.set(\"config\",config, \"file\");\n    }\n    msg.payload = config;\n    node.send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 710,
+        "y": 640,
+        "wires": [
+            [
+                "368fdd39.96d282"
+            ]
+        ]
+    },
+    {
+        "id": "368fdd39.96d282",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Has server address or port changed",
+        "func": "let process = global.get(\"process\");\nif( \n    (msg.payload.moxa_server && `${msg.payload.moxa_server}` !== `${process.env.DEVICE_SERVER}`)\n || \n     (msg.payload.moxa_port && `${msg.payload.moxa_port}` !== `${process.env.DEVICE_PORT}`)\n\n )\n{\n    flow.set(\"DEVICE_SERVER\",msg.payload.moxa_server);\n    flow.set(\"DEVICE_PORT\",msg.payload.moxa_port);\n    node.send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 580,
+        "wires": [
+            [
+                "e9d0b162.0a925"
+            ]
+        ]
+    },
+    {
+        "id": "d0195d7b.8f291",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Update settings",
+        "func": "let DEVICE_SERVER = flow.get(\"DEVICE_SERVER\");\nlet DEVICE_PORT = flow.get(\"DEVICE_PORT\");\nif(DEVICE_SERVER && DEVICE_PORT){\n    let before = msg.payload;\n    let lines = msg.payload.split(\"\\n\");\n    const regex_server = /^\\s*process.env.DEVICE_SERVER\\s*=/\n    const regex_port= /^\\s*process.env.DEVICE_PORT\\s*=/\n    lines = lines.map(line=>{\n        if(line.match(regex_server)){\n            return `process.env.DEVICE_SERVER = \"${DEVICE_SERVER}\";`;           \n        }else if(line.match(regex_port)){\n            return `process.env.DEVICE_PORT = \"${DEVICE_PORT}\";`;   \n        }else{\n            return line;\n        }\n    });\n    msg.payload = lines.join(\"\\n\");\n    if(before !== msg.payload){\n        node.send(msg);    \n    }\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1280,
+        "y": 580,
+        "wires": [
+            [
+                "d3aede30.73661",
+                "eac42150.973c4"
+            ]
+        ]
+    },
+    {
+        "id": "c90fa419.7375f8",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "load config at startup",
+        "func": "let config = flow.get(\"config\", \"file\");\nflow.set(\"config\",config);\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eac42150.973c4",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 1360,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "f1fac317aa84598f",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "d": true,
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "04/22/22\t15:13:22\t695\t50\t700\t159\t546",
+        "payloadType": "str",
+        "x": 270,
+        "y": 40,
+        "wires": [
+            [
+                "addf79e2.df5538"
+            ]
+        ]
+    },
+    {
+        "id": "f5b97ef854221049",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "342bcc0458c4e481",
+        "type": "inject",
+        "z": "bd0c2613.015978",
+        "name": "Inject Test Data",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[58,55,48,65,13,10,58,49,69,67,69,55,48,65,68,69,67,56,67,55,67,67,49,67,48,48,49,66,51,66,49,65,50,51,50,48,68,53,49,68,49,67,49,66,50,70,49,65,49,55,50,48,67,69,49,68,49,56,49,66,50,68,49,65,49,66,50,48,68,50,49,68,49,50,49,66,51,51,49,65,50,54,50,48,69,48,49,68,49,68,49,66,50,70,49,65,49,55,50,48,68,48,49,68,49,68,49,66,50,55,49,54,70,69,50,48,67,70,49,68,48,65,49,66,51,65,48,56,66,57,50,48,68,65,49,67,49,66,49,66,50,69,48,49,57,70,50,48,67,51,49,57,55,48,49,66,51,57,48,49,48,66,50,48,68,52,49,56,52,56,49,66,50,55,48,50,49,69,50,48,67,56,49,57,54,48,49,66,51,48,48,52,50,56,50,48,67,69,49,65,55,50,49,66,51,52,48,54,69,54,50,48,68,53,49,66,51,67,49,66,50,56,48,57,69,49,50,48,67,67,49,66,66,54,49,66,51,52,48,67,66,48,50,48,68,53,49,67,49,48,49,66,50,65,48,70,52,50,50,48,67,65,49,67,52,51,49,66,50,54,49,49,55,69,50,48,67,70,49,67,55,51,49,66,50,67,49,51,52,65,50,48,67,65,49,67,56,66,49,66,50,69,49,52,66,53,50,48,67,54,49,67,65,51,49,66,50,69,49,53,67,65,50,48,67,66,49,67,66,57,49,66,51,52,49,54,66,49,50,48,67,69,49,67,67,69,49,66,51,48,49,55,54,49,50,48,68,48,49,67,69,51,49,66,50,69,49,55,70,51,50,48,68,50,49,67,70,51,49,66,50,70,49,56,54,49,50,48,68,50,49,67,70,53,49,66,51,54,49,56,66,54,50,48,68,51,49,67,70,68,49,66,51,48,49,56,70,65,50,48,67,55,49,68,48,53,49,66,51,55,49,57,50,69,50,48,68,57,49,68,48,51,49,66,51,48,49,57,54,49,50,48,68,65,49,68,48,66,51,67,69,66,51,68,51,57,49,66,70,66,53,53,13,10,58,55,48,65,13,10,58,49,69,67,69,55,48,65,68,69,67,56,67,66,53,48,49,66,70,66,49,66,51,53,49,65,48,65,50,48,68,55,49,68,49,65,49,66,51,51,49,65,48,68,50,48,68,52,49,68,49,56,49,66,51,50,49,57,70,68,50,48,68,50,49,68,48,67,49,66,50,68,49,65,48,55,50,48,67,66,49,68,49,52,49,66,50,65,49,65,48,53,50,48,67,68,49,68,49,65,49,66,50,69,49,54,50,54,50,48,67,68,49,67,70,51,49,66,51,56,48,55,50,56,50,48,68,51,49,66,70,67,49,66,51,52,48,49,65,49,50,48,68,53,49,57,68,69,49,66,50,52,48,49,52,55,50,48,66,70,49,57,49,55,49,66,51,48,48,50,51,55,50,48,67,67,49,57,67,57,49,66,50,53,48,52,51,69,50,48,67,48,49,65,65,67,49,66,51,52,48,55,48,52,50,48,67,51,49,66,53,48,49,66,50,68,48,65,49,56,50,48,68,48,49,66,66,70,49,66,50,56,48,67,69,50,50,48,67,53,49,67,48,69,49,66,50,67,48,69,70,66,50,48,67,55,49,67,53,55,49,66,51,52,49,49,66,55,50,48,68,48,49,67,53,54,49,66,51,66,49,51,65,67,50,48,67,70,49,67,57,50,49,66,50,69,49,52,69,56,50,48,68,52,49,67,66,49,49,66,50,68,49,53,69,53,50,48,67,52,49,67,66,55,49,66,50,69,49,54,65,70,50,48,67,66,49,67,68,51,49,66,51,65,49,55,53,67,50,48,67,56,49,67,68,68,49,66,50,57,49,55,68,51,50,48,67,51,49,67,69,54,49,66,50,66,49,56,51,68,50,48,67,65,49,67,70,53,49,66,50,56,49,56,56,56,50,48,68,50,49,67,69,67,49,66,50,53,49,56,67,69,50,48,67,65,49,67,70,69,49,66,51,49,49,57,48,66,50,48,67,66,49,68,48,50,49,66,50,70,49,57,51,48,50,48,67,53,49,68,48,48,51,67,69,66,51,68,51,57,49,66,70,53,55,65,13,10,58,55,48,65,13,10,58,49,69,67,69,55,48,65,68,69,67,56,67,69,68,52,49,66,70,55,49,66,51,53,49,57,69,49,50,48,67,55,49,68,49,53,49,66,51,49,49,57,68,70,50,48,67,54,49,68,48,68,49,66,51,50,49,57,68,69,50,48,67,54,49,68,48,55,49,66,51,49,49,57,69,52,50,48,67,70,49,68,49,48,49,66,50,66,49,57,69,54,50,48,67,50,49,68,48,70,49,66,51,66,49,54,51,54,50,48,67,57,49,68,48,54,49,66,50,70,48,55,48,50,50,48,67,65,49,67,48,67,49,66,51,50,48,49,56,54,50,48,67,53,49,65,50,56,49,66,50,57,48,49,53,54,50,48,67,68,49,57,54,68,49,66,51,53,48,50,54,56,50,48,68,49,49,65,50,49,49,66,50,51,48,52,53,54,50,48,67,53,49,65,67,69,49,66,50,68,48,55,48,49,50,48,67,49,49,66,54,57,49,66,51,54,48,57,67,54,50,48,67,67,49,66,67,70,49,66,51,50,48,67,55,57,50,48,67,69,49,67,49,69,49,66,50,53,48,70,48,48,50,48,67,51,49,67,53,53,49,66,51,50,49,49,50,56,50,48,68,48,49,67,55,66,49,66,50,68,49,50,70,50,50,48,67,57,49,67,57,50,49,66,51,54,49,52,53,56,50,48,68,51,49,67,66,48,49,66,51,54,49,53,55,52,50,48,67,65,49,67,67,52,49,66,51,67,49,54,52,49,50,48,68,51,49,67,67,65,49,66,51,48,49,54,69,55,50,48,67,54,49,67,68,53,49,66,51,51,49,55,56,68,50,48,68,50,49,67,69,66,49,66,50,66,49,55,69,66,50,48,66,67,49,67,69,51,49,66,50,68,49,56,52,56,50,48,67,52,49,67,69,69,49,66,51,50,49,56,57,57,50,48,67,68,49,67,70,56,49,66,50,65,49,56,68,57,50,48,67,67,49,67,70,67,49,66,51,52,49,57,48,53,50,48,67,50,49,67,70,50,51,67,69,66,51,68,51,55,49,66,70,49,52,69,13,10,58,55,48,65,13,10,58,49,69,67,69,55,48,65,68,69,67,56,68,50,53,56,49,66,70,52,49,66,50,69,49,57,67,48,50,48,67,65,49,68,48,54,49,66,50,54,49,57,67,51,50,48,67,54,49,68,48,48,49,66,51,49,49,57,68,49,50,48,67,56,49,68,48,53,49,66,51,56,49,57,67,69,50,48,66,67,49,68,48,55,49,66,51,51,49,57,67,65,50,48,67,50,49,67,70,69,49,66,51,48,49,54,52,48,50,48,66,67,49,67,70,49,49,66,51,51,48,55,51,66,50,48,67,53,49,67,49,49,49,66,51,70,48,49,65,68,50,48,67,67,49,65,56,56,49,66,50,68,48,49,52,67,50,48,67,53,49,57,57,66,49,66,51,51,48,50,54,55,50,48,67,66,49,65,51,68,49,66,51,48,48,52,53,52,50,48,67,69,49,65,68,69,49,66,51,54,48,54,70,54,50,48,67,66,49,66,54,57,49,66,51,52,48,57,68,48,50,48,67,69,49,66,69,49,49,66,50,68,48,67,55,65,50,48,67,50,49,67,49,65,49,66,50,57,48,69,70,50,50,48,67,57,49,67,52,56,49,66,50,66,49,49,49,55,50,48,67,54,49,67,54,70,49,66,51,49,49,50,68,55,50,48,67,52,49,67,56,66,49,66,51,65,49,52,52,48,50,48,67,53,49,67,65,49,49,66,50,57,49,53,52,55,50,48,67,53,49,67,66,51,49,66,50,68,49,54,50,54,50,48,67,68,49,67,67,52,49,66,51,57,49,54,68,70,50,48,67,55,49,67,68,50,49,66,51,50,49,55,55,49,50,48,67,48,49,67,69,48,49,66,51,55,49,55,69,49,50,48,67,56,49,67,68,69,49,66,51,48,49,56,52,56,50,48,67,70,49,67,69,69,49,66,50,65,49,56,56,56,50,48,67,50,49,67,69,68,49,66,50,70,49,56,68,48,50,48,67,51,49,67,70,65,49,66,51,55,49,57,48,50,50,48,67,69,49,67,70,57,51,67,69,66,51,68,51,55,49,66,70,48,66,67,13,10,58,55,48,65,13,10,58,49,69,67,69,55,48,65,68,69,67,56,68,53,68,67,49,66,70,52,49,66,51,56,49,57,66,48,50,48,67,66,49,68,48,53,49,66,50,48,49,57,65,66,50,48,67,54,49,68,48,51,49,66,51,51,49,57,66,50,50,48,67,53,49,67,70,68,49,66,50,69,49,57,66,53,50,48,67,53,49,68,48,66,49,66,51,51,49,57,66,69,50,48,67,65,49,68,48,52,49,66,51,48,49,54,50,56,50,48,67,67,49,67,70,69,49,66,51,50,48,54,65,49,50,48,67,53,49,67,48,52,49,66,50,54,48,49,57,49,50,48,67,56,49,65,55,66,49,66,50,67,48,49,52,54,50,48,67,57,49,57,66,48,49,66,51,52,48,50,54,56,50,48,67,53,49,65,52,67,49,66,51,48,48,52,52,66,50,48,67,55,49,65,69,57,49,66,51,52,48,54,69,67,50,48,67,55,49,66,54,69,49,66,51,56,48,57,66,52,50,48,67,67,49,66,68,56,49,66,51,54,48,67,55,49,50,48,67,56,49,67,50,50,49,66,50,53,48,69,69,53,50,48,67,54,49,67,52,53,49,66,51,49,49,49,48,50,50,48,67,54,49,67,54,66,49,66,51,49,49,50,67,56,50,48,67,50,49,67,56,65,49,66,51,52,49,52,51,67,50,48,67,57,49,67,57,68,49,66,50,68,49,53,54,51,50,48,68,53,49,67,66,55,49,66,51,48,49,54,52,55,50,48,66,69,49,67,67,55,49,66,50,65,49,54,69,68,50,48,67,51,49,67,68,51,49,66,50,66,49,55,56,51,50,48,67,70,49,67,69,53,49,66,51,51,49,55,70,54,50,48,67,53,49,67,69,53,49,66,51,55,49,56,53,51,50,48,67,51,49,67,70,49,49,66,50,70,49,56,56,67,50,48,66,70,49,67,69,70,49,66,51,50,49,56,67,52,50,48,67,52,49,67,69,70,49,66,51,49,49,56,70,54,50,48,67,56,49,67,70,70,51,67,69,65,51,68,51,53,49,66,69,70,49,49]",
+        "payloadType": "bin",
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "49184e22c586620b"
+            ]
+        ]
+    },
+    {
+        "id": "49184e22c586620b",
+        "type": "daemon",
+        "z": "bd0c2613.015978",
+        "name": "",
+        "command": "nc",
+        "args": "-l -p 1234",
+        "autorun": true,
+        "cr": false,
+        "redo": true,
+        "op": "string",
+        "closer": "SIGKILL",
+        "x": 370,
+        "y": 180,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    }
+]

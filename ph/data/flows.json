@@ -1,0 +1,433 @@
+[
+    {
+        "id": "77c7c30f.0fd61c",
+        "type": "tab",
+        "label": "Device to Kafka",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "c7885260.5b223",
+        "type": "Kafka Broker",
+        "name": "kafka gconode05",
+        "hosts": [
+            {
+                "host": "gconode05",
+                "port": 9092
+            }
+        ],
+        "hostsEnvVar": "",
+        "connectTimeout": "10000",
+        "requestTimeout": "30000",
+        "autoConnect": "true",
+        "idleConnection": "5",
+        "reconnectOnIdle": "true",
+        "maxAsyncRequests": "10",
+        "checkInterval": "10",
+        "selfSign": true,
+        "usetls": false
+    },
+    {
+        "id": "8536146.25b6be8",
+        "type": "http proxy",
+        "name": "spiddal http proxy",
+        "url": "http://172.16.255.226:3128",
+        "noproxy": []
+    },
+    {
+        "id": "80019f2d.9dd3f",
+        "type": "tcp in",
+        "z": "77c7c30f.0fd61c",
+        "name": "MOXA SWITCH",
+        "server": "client",
+        "host": "172.16.255.8",
+        "port": "950",
+        "datamode": "single",
+        "datatype": "buffer",
+        "newline": "\\n",
+        "topic": "spiddal-ph",
+        "base64": false,
+        "tls": "",
+        "x": 240,
+        "y": 120,
+        "wires": [
+            [
+                "addf79e2.df5538",
+                "f5b97ef854221049"
+            ]
+        ]
+    },
+    {
+        "id": "c319188c.7a1c88",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 1010,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "addf79e2.df5538",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Add device and timestamp",
+        "func": "let config = flow.get(\"config\");\nif(!config){\n    console.log(\"config not set. things will break.\");\n}\nvar device = config.id;\nlet instrumentation = [].join(\"|\")\n\nvar parts = [new Date().toISOString()\n    ,device,\n    (\"\"+msg.payload).trim()]\n\nmsg.payload = parts.join(\"|\");\nflow.set('latest',{payload:msg.payload,time:new Date().getTime()});\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 140,
+        "wires": [
+            [
+                "7818e38c.25462c",
+                "c319188c.7a1c88"
+            ]
+        ]
+    },
+    {
+        "id": "7818e38c.25462c",
+        "type": "Kafka Producer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-ph",
+        "broker": "c7885260.5b223",
+        "topic": "spiddal-ph",
+        "topicSlash2dot": false,
+        "requireAcks": 1,
+        "ackTimeoutMs": 100,
+        "partitionerType": 0,
+        "key": "",
+        "partition": 0,
+        "attributes": 0,
+        "connectionType": "Producer",
+        "x": 940,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "18b6b4f1.f9be7b",
+        "type": "trigger",
+        "z": "77c7c30f.0fd61c",
+        "name": "Trigger if no data for 5 minutes",
+        "op1": "",
+        "op2": "",
+        "op1type": "nul",
+        "op2type": "date",
+        "duration": "5",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 650,
+        "y": 400,
+        "wires": [
+            [
+                "457b1886.3b6b68"
+            ]
+        ]
+    },
+    {
+        "id": "457b1886.3b6b68",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "d": true,
+        "name": "Restart node-red",
+        "func": "console.log(\"No data. Exiting process\")\nglobal.get(\"process\").exit()",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1550,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a94e48.8bcb11b8",
+        "type": "Kafka Consumer",
+        "z": "77c7c30f.0fd61c",
+        "name": "kafka:spiddal-ph",
+        "broker": "c7885260.5b223",
+        "regex": false,
+        "topics": [
+            {
+                "topic": "spiddal-ph",
+                "offset": 0,
+                "partition": 0
+            }
+        ],
+        "groupId": "spiddal-ph-monitor",
+        "autoCommit": "true",
+        "autoCommitIntervalMs": 5000,
+        "fetchMaxWaitMs": 100,
+        "fetchMinBytes": 1,
+        "fetchMaxBytes": 1048576,
+        "fromOffset": 0,
+        "encoding": "utf8",
+        "keyEncoding": "utf8",
+        "connectionType": "Consumer",
+        "convertToJson": false,
+        "x": 280,
+        "y": 320,
+        "wires": [
+            [
+                "18b6b4f1.f9be7b"
+            ]
+        ]
+    },
+    {
+        "id": "297d216f.13d3ee",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "Inject on Start",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 460,
+        "wires": [
+            [
+                "18b6b4f1.f9be7b",
+                "d521185d.1b79e8",
+                "c90fa419.7375f8"
+            ]
+        ]
+    },
+    {
+        "id": "d521185d.1b79e8",
+        "type": "http request",
+        "z": "77c7c30f.0fd61c",
+        "name": "Fetch device configuration",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "${CSV_CONFIG}",
+        "tls": "",
+        "persist": false,
+        "proxy": "8536146.25b6be8",
+        "authType": "",
+        "x": 350,
+        "y": 660,
+        "wires": [
+            [
+                "f5724ce0.69149"
+            ]
+        ]
+    },
+    {
+        "id": "f5724ce0.69149",
+        "type": "csv",
+        "z": "77c7c30f.0fd61c",
+        "name": "Parse configuration",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "x": 550,
+        "y": 580,
+        "wires": [
+            [
+                "c6b0997e.b1cfb8"
+            ]
+        ]
+    },
+    {
+        "id": "e9d0b162.0a925",
+        "type": "file in",
+        "z": "77c7c30f.0fd61c",
+        "name": "Read settings file",
+        "filename": "/data/settings.js",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 1130,
+        "y": 640,
+        "wires": [
+            [
+                "d0195d7b.8f291"
+            ]
+        ]
+    },
+    {
+        "id": "d3aede30.73661",
+        "type": "file",
+        "z": "77c7c30f.0fd61c",
+        "name": "rewrite settings file",
+        "filename": "/data/settings.js",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1410,
+        "y": 640,
+        "wires": [
+            [
+                "457b1886.3b6b68"
+            ]
+        ]
+    },
+    {
+        "id": "c6b0997e.b1cfb8",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Set current config",
+        "func": "let now = new Date().toISOString();\nlet configs = msg.payload.filter(x=>x.start_date<now && ((!x.end_date) || x.end_date>now))\nif(configs.length > 0){\n    let config = configs[0];\n    flow.set(\"config\",config);\n    if(JSON.stringify(config) !== JSON.stringify(flow.get(\"config\"))){\n        flow.set(\"config\",config, \"file\");\n    }\n    msg.payload = config;\n    node.send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 710,
+        "y": 640,
+        "wires": [
+            [
+                "368fdd39.96d282"
+            ]
+        ]
+    },
+    {
+        "id": "368fdd39.96d282",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Has server address or port changed",
+        "func": "let process = global.get(\"process\");\nif( \n    (msg.payload.moxa_server && `${msg.payload.moxa_server}` !== `${process.env.DEVICE_SERVER}`)\n || \n     (msg.payload.moxa_port && `${msg.payload.moxa_port}` !== `${process.env.DEVICE_PORT}`)\n\n )\n{\n    flow.set(\"DEVICE_SERVER\",msg.payload.moxa_server);\n    flow.set(\"DEVICE_PORT\",msg.payload.moxa_port);\n    node.send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 580,
+        "wires": [
+            [
+                "e9d0b162.0a925"
+            ]
+        ]
+    },
+    {
+        "id": "d0195d7b.8f291",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "Update settings",
+        "func": "let DEVICE_SERVER = flow.get(\"DEVICE_SERVER\");\nlet DEVICE_PORT = flow.get(\"DEVICE_PORT\");\nif(DEVICE_SERVER && DEVICE_PORT){\n    let before = msg.payload;\n    let lines = msg.payload.split(\"\\n\");\n    const regex_server = /^\\s*process.env.DEVICE_SERVER\\s*=/\n    const regex_port= /^\\s*process.env.DEVICE_PORT\\s*=/\n    lines = lines.map(line=>{\n        if(line.match(regex_server)){\n            return `process.env.DEVICE_SERVER = \"${DEVICE_SERVER}\";`;           \n        }else if(line.match(regex_port)){\n            return `process.env.DEVICE_PORT = \"${DEVICE_PORT}\";`;   \n        }else{\n            return line;\n        }\n    });\n    msg.payload = lines.join(\"\\n\");\n    if(before !== msg.payload){\n        node.send(msg);    \n    }\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1280,
+        "y": 580,
+        "wires": [
+            [
+                "d3aede30.73661",
+                "eac42150.973c4"
+            ]
+        ]
+    },
+    {
+        "id": "c90fa419.7375f8",
+        "type": "function",
+        "z": "77c7c30f.0fd61c",
+        "name": "load config at startup",
+        "func": "let config = flow.get(\"config\", \"file\");\nflow.set(\"config\",config);\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eac42150.973c4",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 1360,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "f1fac317aa84598f",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "d": true,
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "04/22/22\t15:13:22\t695\t50\t700\t159\t546",
+        "payloadType": "str",
+        "x": 270,
+        "y": 40,
+        "wires": [
+            [
+                "addf79e2.df5538"
+            ]
+        ]
+    },
+    {
+        "id": "f5b97ef854221049",
+        "type": "debug",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
+        "y": 40,
+        "wires": []
+    }
+]
