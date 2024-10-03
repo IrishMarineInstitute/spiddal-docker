@@ -13,7 +13,7 @@
                 "view-store-zoom": false
             },
             "tours": {
-                "welcome": "4.0.3"
+                "welcome": "2.2.0"
             }
         },
         "menu-deploymenu-item-node": true,

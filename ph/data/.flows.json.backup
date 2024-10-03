@@ -534,6 +534,35 @@
         "wires": []
     },
     {
+        "id": "7ca5b552064a6dd3",
+        "type": "inject",
+        "z": "77c7c30f.0fd61c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1DDE70AE32322041EA1241E000B25A402EA24200008259802EC2412FFFE259402EC24170004258B02E62415FFFD259002EB241C0006258D02F124100004258D02EC240FFFFF258A02E52414FFFC258902DF241B0000258E02E724170000258502EC241C0007258402EF241A0004258D02EB2419FFFE258802E424150001257C02F024150009258E02E8241A0001258E02E424110002257E02E62417FFFB258902E724160001258402ED2416FFFB258602E824170002258702EB240EFFFE258902E82412FFF8257D02DB24170003258B02EA241CFFFD258702F02417000A258902F33FFF3FFF1EA3B6",
+        "payloadType": "str",
+        "x": 290,
+        "y": 200,
+        "wires": [
+            [
+                "addf79e2.df5538"
+            ]
+        ]
+    },
+    {
         "id": "342bcc0458c4e481",
         "type": "inject",
         "z": "bd0c2613.015978",
