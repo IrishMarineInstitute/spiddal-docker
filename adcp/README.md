@@ -7,7 +7,7 @@ To create and run the container instance, use the following command:
 	docker run -d --name=adcp --restart=always \
 	--add-host=gconode05:172.16.255.12 \
 	-v /path/to/repo/adcp/data:/data \
-	-v /path/to/config/file:/data/device_config.csv
+	-v /path/to/config/file:/data/device_config.csv \
 	spiddal-nodered:2.2
 ```
 

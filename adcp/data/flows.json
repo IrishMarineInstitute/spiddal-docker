@@ -166,7 +166,7 @@
         "type": "file in",
         "z": "e88e1cb6c8102f2b",
         "name": "Reading config file",
-        "filename": "/data/adcp_config.csv",
+        "filename": "/data/device_config.csv",
         "format": "utf8",
         "chunk": false,
         "sendError": false,
@@ -190,8 +190,8 @@
         "rules": [
             {
                 "t": "eq",
-                "v": "adcp0",
-                "vt": "str"
+                "v": "DEVICE_REFERENCE",
+                "vt": "env"
             }
         ],
         "checkall": "true",
@@ -260,28 +260,12 @@
         ]
     },
     {
-        "id": "fc799e3219ae36a0",
-        "type": "debug",
-        "z": "b92370b7f0220dde",
-        "name": "",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 790,
-        "y": 60,
-        "wires": []
-    },
-    {
         "id": "5637d88b98647751",
         "type": "Kafka Producer",
         "z": "b92370b7f0220dde",
         "name": "kafka-spiddal",
         "broker": "356785b888196c3a",
-        "topic": "spiddal-adcp",
+        "topic": "${KAFKA_TOPIC}",
         "topicDeadletter": "deadletter",
         "topicSlash2dot": false,
         "requireAcks": 1,
@@ -294,8 +278,8 @@
         "convertFromJson": false,
         "nodeQSize": 1000,
         "compressionType": "none",
-        "x": 850,
-        "y": 260,
+        "x": 810,
+        "y": 240,
         "wires": []
     },
     {
@@ -313,9 +297,25 @@
         "y": 200,
         "wires": [
             [
-                "fc799e3219ae36a0",
-                "5637d88b98647751"
+                "5637d88b98647751",
+                "02c8f609a4c6a4cf"
             ]
         ]
+    },
+    {
+        "id": "02c8f609a4c6a4cf",
+        "type": "debug",
+        "z": "b92370b7f0220dde",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 810,
+        "y": 140,
+        "wires": []
     }
 ]
