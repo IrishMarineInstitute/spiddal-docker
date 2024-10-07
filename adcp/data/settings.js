@@ -21,7 +21,7 @@ var fs = require("fs");
 //process.env.DEVICE_SERVER = "172.16.255.8";
 //process.env.DEVICE_PORT = "952";
 //process.env.DEVICE_COMMAND_PORT = "968";
-process.env.CSV_CONFIG = "https://github.com/IrishMarineInstitute/uwobs/blob/master/common/apps/adcp_config.csv"
+process.env.CSV_CONFIG = "https://raw.githubusercontent.com/IrishMarineInstitute/uwobs/refs/heads/master/common/apps/adcp_config.csv"
 //process.env.CSV_COMMAND_CONFIG = "https://raw.githubusercontent.com/IrishMarineInstitute/uwobs/master/common/apps/??"
 
 module.exports = {
