@@ -10,7 +10,7 @@ The base image should already be built. If needed, it can be rebuilt using the f
 ```
 docker build --build-arg HTTP_PROXY=http://172.16.255.226:3128 \
              --build-arg HTTPS_PROXY=http://172.16.255.226:3128 \
-               -t spiddal-nodered .
+               -t spiddal-nodered:2.2 .
 ```
 
 ## Usage
