@@ -4,9 +4,11 @@ This flow runs the NodeRED base image with new data.
 To create and run the container instance, use the following command:
 
 ```
-   docker run -d --name=adcp --restart=always \
-             --add-host=gconode05:172.16.255.12 \
-       -v /home/opsuser/dev/docker/adcp/data:/data spiddal-nodered:2.2
+	docker run -d --name=adcp --restart=always \
+	--add-host=gconode05:172.16.255.12 \
+	-v /path/to/repo/adcp/data:/data \
+	-v /path/to/config/file:/data/device_config.csv
+	spiddal-nodered:2.2
 ```
 
 # Check results
