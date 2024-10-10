@@ -16,6 +16,14 @@
         "env": []
     },
     {
+        "id": "9bed12b54bb163d6",
+        "type": "tab",
+        "label": "Reconfigure",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "356785b888196c3a",
         "type": "Kafka Broker",
         "name": "kafka gconode05",
@@ -84,7 +92,7 @@
         "type": "debug",
         "z": "e88e1cb6c8102f2b",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -148,6 +156,14 @@
                 "to": "payload.id",
                 "tot": "msg",
                 "dc": true
+            },
+            {
+                "t": "set",
+                "p": "CONFIGURE_ON_STARTUP",
+                "pt": "global",
+                "to": "payload.configure_on_startup",
+                "tot": "msg",
+                "dc": true
             }
         ],
         "action": "",
@@ -166,7 +182,7 @@
         "type": "file in",
         "z": "e88e1cb6c8102f2b",
         "name": "Reading config file",
-        "filename": "/data/device_config.csv",
+        "filename": "/conf/device_config.csv",
         "format": "utf8",
         "chunk": false,
         "sendError": false,
@@ -263,10 +279,9 @@
         "id": "5637d88b98647751",
         "type": "Kafka Producer",
         "z": "b92370b7f0220dde",
-        "name": "kafka-spiddal",
+        "name": "kafka:spiddal",
         "broker": "356785b888196c3a",
         "topic": "${KAFKA_TOPIC}",
-        "topicDeadletter": "deadletter",
         "topicSlash2dot": false,
         "requireAcks": 1,
         "ackTimeoutMs": 100,
@@ -276,8 +291,6 @@
         "attributes": 0,
         "connectionType": "Producer",
         "convertFromJson": false,
-        "nodeQSize": 1000,
-        "compressionType": "none",
         "x": 810,
         "y": 240,
         "wires": []
@@ -286,15 +299,15 @@
         "id": "935072c465b6fabf",
         "type": "function",
         "z": "b92370b7f0220dde",
-        "name": "",
+        "name": "Add device and timestamp",
         "func": "let device_id = global.get(\"DEVICE_ID\");\nif(device_id){\n    let device = device_id;\n    let parts = [new Date().toISOString(),device,(\"\"+msg.payload).trim()];\n    msg.payload = parts.join(\"|\");\n    flow.set('latest',{payload:msg.payload,time:new Date().getTime()});\n    return msg;\n}\nelse{\n    node.error(\"Device configuration not set\",msg);\n}",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 600,
-        "y": 200,
+        "x": 560,
+        "y": 180,
         "wires": [
             [
                 "5637d88b98647751",
@@ -307,7 +320,7 @@
         "type": "debug",
         "z": "b92370b7f0220dde",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -316,6 +329,285 @@
         "statusType": "auto",
         "x": 810,
         "y": 140,
+        "wires": []
+    },
+    {
+        "id": "d6104002617b7907",
+        "type": "inject",
+        "z": "9bed12b54bb163d6",
+        "name": "Trigger configuration",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 130,
+        "y": 180,
+        "wires": [
+            [
+                "e8fb41c231afe832"
+            ]
+        ]
+    },
+    {
+        "id": "3716eeac0b374a0e",
+        "type": "function",
+        "z": "9bed12b54bb163d6",
+        "name": "Emit commands",
+        "func": "const commands = msg.payload;\nconst thenode = node;\nmsg.action = \"write\";\n\nlet sendCtrlC = ()=>{\n    msg.payload = String.fromCharCode.apply(null,[3]);\n    thenode.send(msg);\n};\n\n\nconst sendCommand = ()=>{\n    let command = commands.shift();\n    if(command){\n        if(command == \"<CR>\"){\n            msg.payload = `\\r`;\n            thenode.send(msg);\n            setTimeout(sendCommand,1000)\n        }\n        else if(command == \"<LF>\"){\n            msg.payload = `\\n`;\n            thenode.send(msg);\n            setTimeout(sendCommand,1000)\n        }\n        else if(command == \"<CRLF>\"){\n            msg.payload = `\\r\\n`;\n            thenode.send(msg);\n            setTimeout(sendCommand,5000)\n        }\n        else if(command == \"<CTRLC>\"){\n            setTimeout(sendCtrlC,5000);\n            setTimeout(sendCommand,7000);\n        }\n        else{\n            msg.payload = `${command}`;\n            thenode.send(msg);\n            setTimeout(sendCommand,1000)\n        }\n    }\n    else{\n        msg.payload = null;\n        msg.action=\"close\";\n        thenode.send(msg);\n    }\n};\n\nsetTimeout(()=>{\n    setTimeout(sendCommand, 5000)\n},400)\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 380,
+        "wires": [
+            [
+                "830795bf2ac7f513",
+                "0a587134ab2ef7ef"
+            ]
+        ]
+    },
+    {
+        "id": "0a587134ab2ef7ef",
+        "type": "tcp-client",
+        "z": "9bed12b54bb163d6",
+        "action": "action",
+        "actionType": "msg",
+        "host": "DEVICE_SERVER",
+        "hostType": "global",
+        "port": "DEVICE_PORT",
+        "portType": "global",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "\\n",
+        "write": "payload",
+        "writeType": "msg",
+        "maxRetries": "0",
+        "retryDelay": "3000",
+        "indefiniteRetries": false,
+        "topic": "",
+        "name": "",
+        "debug": "warning",
+        "x": 780,
+        "y": 460,
+        "wires": [
+            [
+                "830795bf2ac7f513"
+            ]
+        ]
+    },
+    {
+        "id": "4e47db536c3c3043",
+        "type": "change",
+        "z": "9bed12b54bb163d6",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "connect",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 280,
+        "wires": [
+            [
+                "0a587134ab2ef7ef"
+            ]
+        ]
+    },
+    {
+        "id": "3540d9395026ee28",
+        "type": "change",
+        "z": "9bed12b54bb163d6",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "close",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 560,
+        "y": 460,
+        "wires": [
+            [
+                "0a587134ab2ef7ef"
+            ]
+        ]
+    },
+    {
+        "id": "9689f7f40d599f17",
+        "type": "inject",
+        "z": "9bed12b54bb163d6",
+        "name": "Manual close",
+        "props": [
+            {
+                "p": "action",
+                "v": "close",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 370,
+        "y": 460,
+        "wires": [
+            [
+                "3540d9395026ee28"
+            ]
+        ]
+    },
+    {
+        "id": "830795bf2ac7f513",
+        "type": "debug",
+        "z": "9bed12b54bb163d6",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1070,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "1ee2e37c2d0d7e0f",
+        "type": "file in",
+        "z": "9bed12b54bb163d6",
+        "name": "Reading config file",
+        "filename": "/conf/device_config.txt",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 770,
+        "y": 260,
+        "wires": [
+            [
+                "87b9fd349efdd2a0"
+            ]
+        ]
+    },
+    {
+        "id": "e8fb41c231afe832",
+        "type": "switch",
+        "z": "9bed12b54bb163d6",
+        "name": "Filtering on device type",
+        "property": "CONFIGURE_ON_STARTUP",
+        "propertyType": "global",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "true",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 410,
+        "y": 220,
+        "wires": [
+            [
+                "4e47db536c3c3043"
+            ]
+        ]
+    },
+    {
+        "id": "f11ac3f2cb383a95",
+        "type": "complete",
+        "z": "9bed12b54bb163d6",
+        "name": "On connected",
+        "scope": [
+            "0a587134ab2ef7ef"
+        ],
+        "uncaught": false,
+        "x": 750,
+        "y": 120,
+        "wires": [
+            [
+                "6cc0f34c9e9334f6"
+            ]
+        ]
+    },
+    {
+        "id": "87b9fd349efdd2a0",
+        "type": "function",
+        "z": "9bed12b54bb163d6",
+        "name": "Filering commands",
+        "func": "let timestamp = new Date().toISOString().replace('T',' ').substring(0,19);\n\nlet lines = msg.payload.split(\"\\n\")\n        .map(x=>x.trim())\n        .map(x=>x.replace('{timestamp}',timestamp))\n        .filter(x=>x.length&&!x.startsWith(\"#\"));\n\nreturn {payload: lines};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 320,
+        "wires": [
+            [
+                "3716eeac0b374a0e"
+            ]
+        ]
+    },
+    {
+        "id": "6cc0f34c9e9334f6",
+        "type": "trigger",
+        "z": "9bed12b54bb163d6",
+        "name": "",
+        "op1": "",
+        "op2": "0",
+        "op1type": "pay",
+        "op2type": "str",
+        "duration": "0",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 760,
+        "y": 180,
+        "wires": [
+            [
+                "1ee2e37c2d0d7e0f"
+            ]
+        ]
+    },
+    {
+        "id": "5aa6c6e486d8bde6",
+        "type": "comment",
+        "z": "9bed12b54bb163d6",
+        "name": "Only first message goes through",
+        "info": "First message received here indicates the TCP connection",
+        "x": 1010,
+        "y": 180,
         "wires": []
     }
 ]
