@@ -8,7 +8,7 @@ To create and run the container instance, use the following command:
 	--add-host=gconode05:172.16.255.12 \
 	--mount type=bind,source=/path/to/repo/adcp/data,target=/data \
 	--mount type=bind,source=/path/to/config/file,target=/conf/device_config.csv,readonly \
-        --mount type=bind,source=/path/to/command/config/file,target=/conf/device_config.txt,readonly
+	--mount type=bind,source=/path/to/command/config/file,target=/conf/device_config.txt,readonly \
 	spiddal-nodered:2.2
 ```
 ## Updating configuration
